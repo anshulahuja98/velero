@@ -38,11 +38,11 @@ resourceModifierRules:
 - conditions:
     groupKind: deployments.apps
     resourceNameRegex: "resource-modifiers-.*"
-  patches: 
+  patches:
   - operation: add
     path: "/spec/template/spec/containers/1"
-	value: "{\"name\": \"nginx\", \"image\": \"nginx:1.14.2\", \"ports\": [{\"containerPort\": 80}]}"
-  - operation: replace  
+    value: "{\"name\": \"nginx\", \"image\": \"nginx:1.14.2\", \"ports\": [{\"containerPort\": 80}]}"
+  - operation: replace
     path: "/spec/replicas"
     value: "2"
 `
