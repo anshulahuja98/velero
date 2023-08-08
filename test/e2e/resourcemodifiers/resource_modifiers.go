@@ -38,8 +38,7 @@ resourceModifierRules:
 - conditions:
     groupKind: deployments.apps
     resourceNameRegex: "resource-modifiers-.*"
-  patches:
-  - operation: add  
+  patches: 
   - operation: add
     path: "/spec/template/spec/containers/1"
 	value: "{\"name\": \"nginx\", \"image\": \"nginx:1.14.2\", \"ports\": [{\"containerPort\": 80}]}"
@@ -133,7 +132,7 @@ func (r *ResourceModifiersCase) Verify() error {
 			Expect(err).To(BeNil(), fmt.Sprintf("Failed to get deployment %s in namespace %s", r.CaseBaseName, ns))
 
 			Expect(deploy.Spec.Replicas).To(Equal(int32(2)), fmt.Sprintf("Failed to verify deployment %s's replicas in namespace %s", r.CaseBaseName, ns))
-			Expect(deploy.Spec.Template.Spec.Containers[0].Image).To(Equal("nginx:1.14.2"), fmt.Sprintf("Failed to verify deployment %s's image in namespace %s", r.CaseBaseName, ns))
+			Expect(deploy.Spec.Template.Spec.Containers[1].Image).To(Equal("nginx:1.14.2"), fmt.Sprintf("Failed to verify deployment %s's image in namespace %s", r.CaseBaseName, ns))
 		})
 	}
 	return nil
