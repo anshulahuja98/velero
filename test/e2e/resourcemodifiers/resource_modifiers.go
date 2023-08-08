@@ -39,9 +39,13 @@ resourceModifierRules:
     groupKind: deployments.apps
     resourceNameRegex: "resource-modifiers-.*"
   patches:
+  - operation: add  
+  - operation: add
+    path: "/spec/template/spec/containers/1"
+	value: "{\"name\": \"nginx\", \"image\": \"nginx:1.14.2\", \"ports\": [{\"containerPort\": 80}]}"
   - operation: replace  
-    path: "/spec/template/spec/containers/0/image"
-    value: "gcr.io/velero-gcp/busybox:9.9.9"
+    path: "/spec/replicas"
+    value: "2"
 `
 
 type ResourceModifiersCase struct {
@@ -128,7 +132,8 @@ func (r *ResourceModifiersCase) Verify() error {
 			deploy, err := GetDeployment(r.Client.ClientGo, ns, r.CaseBaseName)
 			Expect(err).To(BeNil(), fmt.Sprintf("Failed to get deployment %s in namespace %s", r.CaseBaseName, ns))
 
-			Expect(deploy.Spec.Template.Spec.Containers[0].Image).To(Equal("gcr.io/velero-gcp/busybox:9.9.9"), fmt.Sprintf("Failed to verify deployment %s in namespace %s", r.CaseBaseName, ns))
+			Expect(deploy.Spec.Replicas).To(Equal(int32(2)), fmt.Sprintf("Failed to verify deployment %s's replicas in namespace %s", r.CaseBaseName, ns))
+			Expect(deploy.Spec.Template.Spec.Containers[0].Image).To(Equal("nginx:1.14.2"), fmt.Sprintf("Failed to verify deployment %s's image in namespace %s", r.CaseBaseName, ns))
 		})
 	}
 	return nil
