@@ -118,9 +118,13 @@ func (r *ResourceModifierRule) PatchArrayToByteArray() ([]byte, error) {
 }
 
 func (p *JSONPatch) ToString() string {
-	// if value is empty, then add quotes
+	// if value is empty, then add empty quotes
 	if p.Value == "" {
 		return fmt.Sprintf(`{"op": "%s", "from": "%s", "path": "%s", "value": ""}`, p.Operation, p.From, p.Path)
+	}
+	// if value is null, then don't add quotes
+	if p.Value == "null" {
+		return fmt.Sprintf(`{"op": "%s", "from": "%s", "path": "%s", "value": %s}`, p.Operation, p.From, p.Path, p.Value)
 	}
 	// if value is a boolean, then don't add quotes
 	if _, err := strconv.ParseBool(p.Value); err == nil {
