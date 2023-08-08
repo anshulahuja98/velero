@@ -131,7 +131,7 @@ func (r *ResourceModifiersCase) Verify() error {
 			deploy, err := GetDeployment(r.Client.ClientGo, ns, r.CaseBaseName)
 			Expect(err).To(BeNil(), fmt.Sprintf("Failed to get deployment %s in namespace %s", r.CaseBaseName, ns))
 
-			Expect(deploy.Spec.Replicas).To(Equal(int32(2)), fmt.Sprintf("Failed to verify deployment %s's replicas in namespace %s", r.CaseBaseName, ns))
+			Expect(*deploy.Spec.Replicas).To(Equal(int32(2)), fmt.Sprintf("Failed to verify deployment %s's replicas in namespace %s", r.CaseBaseName, ns))
 			Expect(deploy.Spec.Template.Spec.Containers[1].Image).To(Equal("nginx:1.14.2"), fmt.Sprintf("Failed to verify deployment %s's image in namespace %s", r.CaseBaseName, ns))
 		})
 	}
