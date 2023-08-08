@@ -53,10 +53,10 @@ import (
 	"github.com/vmware-tanzu/velero/pkg/util/kube"
 )
 
-const dataMoverType string = "velero"
-const dataUploadDownloadRequestor string = "snapshot-data-upload-download"
-
-const preparingMonitorFrequency time.Duration = time.Minute
+const (
+	dataUploadDownloadRequestor string        = "snapshot-data-upload-download"
+	preparingMonitorFrequency   time.Duration = time.Minute
+)
 
 // DataUploadReconciler reconciles a DataUpload object
 type DataUploadReconciler struct {
@@ -116,7 +116,7 @@ func (r *DataUploadReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		return ctrl.Result{}, errors.Wrap(err, "getting DataUpload")
 	}
 
-	if du.Spec.DataMover != "" && du.Spec.DataMover != dataMoverType {
+	if !datamover.IsBuiltInUploader(du.Spec.DataMover) {
 		log.WithField("Data mover", du.Spec.DataMover).Debug("it is not one built-in data mover which is not supported by Velero")
 		return ctrl.Result{}, nil
 	}
@@ -250,7 +250,7 @@ func (r *DataUploadReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 
 func (r *DataUploadReconciler) runCancelableDataUpload(ctx context.Context, fsBackup datapath.AsyncBR, du *velerov2alpha1api.DataUpload, res *exposer.ExposeResult, log logrus.FieldLogger) (reconcile.Result, error) {
 	log.Info("Run cancelable dataUpload")
-	path, err := exposer.GetPodVolumeHostPath(ctx, res.ByPod.HostingPod, res.ByPod.PVC, r.client, r.fileSystem, log)
+	path, err := exposer.GetPodVolumeHostPath(ctx, res.ByPod.HostingPod, res.ByPod.VolumeName, r.client, r.fileSystem, log)
 	if err != nil {
 		return r.errorOut(ctx, du, err, "error exposing host path for pod volume", log)
 	}
