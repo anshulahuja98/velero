@@ -41,7 +41,7 @@ resourceModifierRules:
   patches:
   - operation: replace
     path: "/spec/replicas"
-    value: "2"
+    value: 2
 `
 
 type ResourceModifiersCase struct {
