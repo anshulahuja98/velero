@@ -48,6 +48,7 @@ import (
 	"github.com/vmware-tanzu/velero/pkg/features"
 	"github.com/vmware-tanzu/velero/pkg/itemoperation"
 	"github.com/vmware-tanzu/velero/pkg/kuberesource"
+	"github.com/vmware-tanzu/velero/pkg/plugin/framework"
 	"github.com/vmware-tanzu/velero/pkg/plugin/velero"
 	vsv1 "github.com/vmware-tanzu/velero/pkg/plugin/velero/volumesnapshotter/v1"
 	"github.com/vmware-tanzu/velero/pkg/podvolume"
@@ -73,7 +74,8 @@ type itemBackupper struct {
 	podVolumeBackupper       podvolume.Backupper
 	podVolumeSnapshotTracker *pvcSnapshotTracker
 	volumeSnapshotterGetter  VolumeSnapshotterGetter
-
+	Cache                    map[schema.GroupResource][]framework.BackupItemResolvedActionV2
+	// Cache                              map[schema.GroupResource]map[framework.BackupItemResolvedActionV2]struct{}
 	itemHookHandler                    hook.ItemHookHandler
 	snapshotLocationVolumeSnapshotters map[string]vsv1.VolumeSnapshotter
 }
@@ -347,7 +349,26 @@ func (ib *itemBackupper) executeActions(
 	finalize bool,
 ) (runtime.Unstructured, []FileForArchive, error) {
 	var itemFiles []FileForArchive
-	for _, action := range ib.backupRequest.ResolvedActions {
+	var actions []framework.BackupItemResolvedActionV2
+	if ib.Cache == nil {
+		ib.Cache = make(map[schema.GroupResource][]framework.BackupItemResolvedActionV2)
+	}
+	cached := false
+	val, ok := ib.Cache[groupResource]
+	if ok {
+		actions = val
+		cached = true
+	} else {
+		actions = ib.backupRequest.ResolvedActions
+	}
+	for _, action := range actions {
+		if !cached && action.ResourceIncludesExcludes.ShouldInclude(groupResource.String()) {
+			_, ok := ib.Cache[groupResource]
+			if !ok {
+				ib.Cache[groupResource] = []framework.BackupItemResolvedActionV2{}
+			}
+			ib.Cache[groupResource] = append(ib.Cache[groupResource], action)
+		}
 		if !action.ShouldUse(groupResource, namespace, metadata, log) {
 			continue
 		}
